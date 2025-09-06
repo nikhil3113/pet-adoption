@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  email       String   @unique
+  name        String
+  phoneNumber String
+  password    String
+  role        UserRole @default(USER)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  Pet         Pet[]
+}
+
+model Pet {
+  id             String     @id @default(auto()) @map("_id") @db.ObjectId
+  gender         String
+  name           String
+  age            Int
+  vaccinated     Boolean
+  additionalInfo String?
+  imageUrl       String
+  state          String
+  city           String
+  status         PetStatus  @default(AVAILABLE)
+  isVerified     Boolean    @default(false)
+  ownerId        String     @db.ObjectId
+  owner          User       @relation(fields: [ownerId], references: [id])
+  categoryId     String     @db.ObjectId
+  category       Categories @relation(fields: [categoryId], references: [id])
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([state, city])
+  @@index([status])
+}
+
+model Categories {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Pet       Pet[]
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum PetStatus {
+  MISSING
+  FOUND
+  AVAILABLE
+  ADOPTED
+}
