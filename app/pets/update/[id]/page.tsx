@@ -31,7 +31,7 @@ export default function UpdatePetPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useAuthRedirect();
+  useAuthRedirect("/auth/signin");
 
   const form = useForm<z.infer<typeof PetSchema>>({
     resolver: zodResolver(PetSchema),

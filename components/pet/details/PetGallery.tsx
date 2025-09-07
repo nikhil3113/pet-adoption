@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
+import ZoomImage from "./ZoomImage";
 
 export default function PetGallery({
   imageUrl,
@@ -11,16 +11,7 @@ export default function PetGallery({
   return (
     <Card className="shadow-xl border-0 overflow-hidden ring-1 ring-slate-200/60">
       <CardContent className="p-0">
-        <div className="relative w-full h-[420px] bg-slate-100">
-          <Image
-            src={imageUrl}
-            alt={name}
-            fill
-            priority
-            sizes="(max-width: 1024px) 100vw, 66vw"
-            className="object-cover"
-          />
-        </div>
+        <ZoomImage src={imageUrl} alt={name} zoom={1.5} lensSize={180} />
       </CardContent>
     </Card>
   );

@@ -1,103 +1,280 @@
-import Image from "next/image";
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { PetCard } from "@/components/pet/PetCards";
+import {
+  PawPrint,
+  ShieldCheck,
+  HeartHandshake,
+  MapPin,
+  Sparkles,
+  Send,
+} from "lucide-react";
 
-export default function Home() {
+export default async function Home() {
+  // Server-side: fetch latest 3 pets
+  const latest = await prisma.pet.findMany({
+    take: 3,
+    orderBy: { createdAt: "desc" },
+    include: {
+      category: true,
+      owner: { select: { id: true, name: true, email: true } },
+    },
+  });
+
+  // Server-side: fetch top categories to browse by type
+  const categories = await prisma.categories.findMany({
+    orderBy: { name: "asc" },
+    take: 6,
+  });
+
+  // Normalize for PetCard
+  const petsForCards = latest.map((p) => ({
+    id: p.id,
+    name: p.name,
+    age: p.age,
+    gender: p.gender === "male" || p.gender === "female" ? p.gender : "male",
+    imageUrl: p.imageUrl,
+    city: p.city,
+    state: p.state,
+    status:
+      (typeof (p.status as unknown as string) === "string"
+        ? (p.status as unknown as string).toLowerCase()
+        : "available") as "available" | "found" | "missing" | "adopted",
+    category: { name: p.category?.name ?? "Pet" },
+    owner: { name: p.owner?.name ?? "" },
+  }));
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen">
+      {/* Hero */}
+      <section className="relative isolate">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-emerald-50 via-white to-sky-50" />
+        <div className="max-w-7xl mx-auto px-4 py-16 sm:py-24">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/80 ring-1 ring-slate-200 px-3 py-1 text-sm text-slate-600">
+              <Sparkles className="w-4 h-4 text-emerald-600" />
+              Trusted, community‑driven pet adoption
+            </div>
+            <h1 className="mt-4 text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900">
+              Find your new best friend
+            </h1>
+            <p className="mt-4 text-lg text-slate-600">
+              Browse pets near you and give them a loving home. List your pet
+              for adoption and reach caring adopters.
+            </p>
+            <div className="mt-8 flex flex-col sm:flex-row gap-3">
+              <Link
+                href="/pets"
+                className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-5 py-3 text-white font-medium shadow hover:bg-emerald-700 transition"
+              >
+                Browse pets
+              </Link>
+              <Link
+                href="/pets/add"
+                className="inline-flex items-center justify-center rounded-lg border border-slate-200 px-5 py-3 text-slate-700 font-medium hover:bg-white shadow-sm transition"
+              >
+                List a pet
+              </Link>
+            </div>
+            <div className="mt-6 text-sm text-slate-500">
+              Safe, transparent, and easy to use.
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </section>
+
+      {/* Browse by type */}
+      <section className="border-t border-slate-100 bg-white">
+        <div className="max-w-7xl mx-auto px-4 py-10">
+          <h2 className="text-2xl font-semibold text-slate-900 mb-4">
+            Browse by type
+          </h2>
+          {categories.length ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+              {categories.map((c) => (
+                <Link
+                  key={c.id}
+                  href={`/pets?categoryId=${encodeURIComponent(c.id)}`}
+                  className="group rounded-xl border border-slate-200 bg-white hover:border-emerald-300 hover:shadow transition p-4 flex items-center justify-center text-slate-700 font-medium"
+                >
+                  <PawPrint className="w-4 h-4 text-emerald-600 mr-2" />
+                  <span className="capitalize group-hover:text-emerald-700">
+                    {c.name}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-dashed border-slate-200 p-6 text-slate-500">
+              No categories available right now.
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Why adopt with us */}
+      <section className="bg-gradient-to-b from-white to-emerald-50/40">
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <h2 className="text-2xl font-semibold text-slate-900 mb-6">
+            Why adopt with us
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6">
+              <ShieldCheck className="w-6 h-6 text-emerald-600" />
+              <h3 className="mt-3 font-semibold text-slate-900">Safe & verified</h3>
+              <p className="mt-1 text-sm text-slate-600">
+                Listings are reviewed and owners can be contacted securely.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-6">
+              <MapPin className="w-6 h-6 text-emerald-600" />
+              <h3 className="mt-3 font-semibold text-slate-900">Local discovery</h3>
+              <p className="mt-1 text-sm text-slate-600">
+                Find pets in your city and nearby areas with intuitive filters.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-6">
+              <HeartHandshake className="w-6 h-6 text-emerald-600" />
+              <h3 className="mt-3 font-semibold text-slate-900">Community first</h3>
+              <p className="mt-1 text-sm text-slate-600">
+                Built for responsible adoption with transparent information.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Latest pets */}
+      <section className="border-t border-slate-100 bg-white">
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-semibold text-slate-900">
+              Latest arrivals
+            </h2>
+            <Link
+              href="/pets"
+              className="text-emerald-700 hover:text-emerald-800 font-medium"
+            >
+              View all →
+            </Link>
+          </div>
+
+          {petsForCards.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-slate-200 p-10 text-center text-slate-500">
+              No pets yet. Be the first to{" "}
+              <Link href="/pets/add" className="text-emerald-700 font-medium">
+                add a pet
+              </Link>
+              .
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {petsForCards.map((pet) => (
+                <PetCard key={pet.id} pet={pet} />
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="bg-white">
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <h2 className="text-2xl font-semibold text-slate-900 mb-6">
+            How it works
+          </h2>
+          <ol className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <li className="rounded-2xl border border-slate-200 p-6">
+              <span className="text-xs font-semibold text-emerald-700">Step 1</span>
+              <h3 className="mt-2 font-semibold text-slate-900">Browse pets</h3>
+              <p className="mt-1 text-sm text-slate-600">
+                Use filters to find pets by type, city, and more.
+              </p>
+            </li>
+            <li className="rounded-2xl border border-slate-200 p-6">
+              <span className="text-xs font-semibold text-emerald-700">Step 2</span>
+              <h3 className="mt-2 font-semibold text-slate-900">Connect with owner</h3>
+              <p className="mt-1 text-sm text-slate-600">
+                Message owners to learn more and plan a visit.
+              </p>
+            </li>
+            <li className="rounded-2xl border border-slate-200 p-6">
+              <span className="text-xs font-semibold text-emerald-700">Step 3</span>
+              <h3 className="mt-2 font-semibold text-slate-900">Adopt responsibly</h3>
+              <p className="mt-1 text-sm text-slate-600">
+                Complete adoption with care and provide a loving home.
+              </p>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      {/* CTA banner */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-emerald-600 to-sky-600" />
+        <div className="max-w-7xl mx-auto px-4 py-10">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h3 className="text-white text-2xl font-bold">
+                Ready to make a difference?
+              </h3>
+              <p className="text-emerald-50/90">
+                List a pet for adoption or explore pets near you now.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Link
+                href="/pets/add"
+                className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 font-medium text-emerald-700 shadow hover:bg-emerald-50"
+              >
+                <Send className="w-4 h-4" />
+                List a pet
+              </Link>
+              <Link
+                href="/pets"
+                className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-medium text-white shadow hover:bg-emerald-800"
+              >
+                Browse pets
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ (SSR-friendly with native details/summary) */}
+      <section className="bg-white">
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <h2 className="text-2xl font-semibold text-slate-900 mb-6">
+            Frequently asked questions
+          </h2>
+          <div className="space-y-3">
+            <details className="group rounded-xl border border-slate-200 p-4">
+              <summary className="cursor-pointer list-none font-medium text-slate-800">
+                Is adopting a pet free?
+              </summary>
+              <p className="mt-2 text-sm text-slate-600">
+                Adoption is community-driven. Some owners may request a small fee to cover care or vaccination costs.
+              </p>
+            </details>
+            <details className="group rounded-xl border border-slate-200 p-4">
+              <summary className="cursor-pointer list-none font-medium text-slate-800">
+                How do I contact a pet owner?
+              </summary>
+              <p className="mt-2 text-sm text-slate-600">
+                Open a pet’s page and, if signed in, use the provided email or phone to get in touch.
+              </p>
+            </details>
+            <details className="group rounded-xl border border-slate-200 p-4">
+              <summary className="cursor-pointer list-none font-medium text-slate-800">
+                Can I list my pet for adoption?
+              </summary>
+              <p className="mt-2 text-sm text-slate-600">
+                Yes. Create an account and list your pet with photos and details. We recommend including vaccination info.
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

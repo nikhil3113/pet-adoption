@@ -27,7 +27,7 @@ export default function AddPets() {
     []
   );
 
-  useAuthRedirect();
+  useAuthRedirect("/auth/signin");
 
   const form = useForm<z.infer<typeof PetSchema>>({
     resolver: zodResolver(PetSchema),

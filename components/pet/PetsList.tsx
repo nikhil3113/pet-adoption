@@ -1,44 +1,84 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { PetFilter } from "@/components/pet/PetFilter";
 import { PetCard } from "@/components/pet/PetCards";
 import { getPets } from "@/lib/actions/pets";
-import { Search } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
+import { Button } from "../ui/button";
 
 export function PetsList({
   categories,
   initialPets,
   initialFilters,
+  total,
+  totalPages,
+  currentPage,
+  limit,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   categories: any[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialPets: any[];
-  initialFilters: { categoryId?: string; state?: string; city?: string };
+  initialFilters: {
+    categoryId?: string;
+    state?: string;
+    city?: string;
+    page?: number;
+    limit?: number;
+  };
+  total: number;
+  totalPages: number;
+  currentPage: number;
+  limit: number;
 }) {
   const [pets, setPets] = useState(initialPets);
   const [filters, setFilters] = useState(initialFilters);
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const handleFilter = (newFilters: typeof filters) => {
     setFilters(newFilters);
     startTransition(async () => {
-      const pets = await getPets(newFilters);
-      setPets(pets);
+      const result = await getPets({ ...newFilters, page: 1 }); 
+      setPets(result.pets);
+      updateURL({ ...newFilters, page: 1 });
     });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    startTransition(async () => {
+      const result = await getPets({ ...filters, page: newPage });
+      setPets(result.pets);
+      updateURL({ ...filters, page: newPage });
+    });
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const updateURL = (params: Record<string, any>) => {
+    const url = new URL(window.location.href);
+    Object.keys(params).forEach((key) => {
+      if (params[key]) {
+        url.searchParams.set(key, params[key]);
+      } else {
+        url.searchParams.delete(key);
+      }
+    });
+    router.push(url.toString(), { scroll: false });
   };
 
   return (
     <div>
-      <div className="flex justify-end items-center">
+      <div className="flex justify-end items-center mb-6">
         <PetFilter
           categories={categories}
           onFilter={handleFilter}
           initial={filters}
         />
       </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {isPending ? (
           <>
@@ -69,6 +109,37 @@ export function PetsList({
           pets.map((pet: any) => <PetCard key={pet.id} pet={pet} />)
         )}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-8">
+          <p className="text-sm text-slate-500">
+            Showing {pets.length} of {total} pets
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1 || isPending}
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Previous
+            </Button>
+            <span className="text-sm text-slate-700">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages || isPending}
+            >
+              Next
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
