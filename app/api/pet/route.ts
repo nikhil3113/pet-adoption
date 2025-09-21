@@ -1,4 +1,5 @@
 import { authOptions } from "@/lib/auth";
+import { validatePetImage } from "@/lib/gemini";
 import { prisma } from "@/lib/prisma";
 import { AuthOptions, getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
@@ -49,6 +50,20 @@ export async function POST(request: Request) {
       imageUrl,
     } = parsed.data;
 
+    const category = await prisma.categories.findUnique({
+      where: { id: categoryId },
+      select: { name: true },
+    });
+
+    if (!category) {
+      return NextResponse.json(
+        { error: "Category not found" },
+        { status: 400 }
+      );
+    }
+
+    const imageValidation = await validatePetImage(imageUrl, category.name);
+
     const petData = await prisma.pet.create({
       data: {
         name,
@@ -63,13 +78,27 @@ export async function POST(request: Request) {
         categoryId,
         ownerId: ownerId,
         imageUrl,
+        isVerified: imageValidation.isValid,
       },
     });
 
-    return NextResponse.json({ petData }, { status: 201 });
+    return NextResponse.json(
+      {
+        petData,
+        validation: {
+          isValid: imageValidation.isValid,
+          detectedAnimal: imageValidation.detectedAnimal,
+          confidence: imageValidation.confidence,
+          reason: imageValidation.reason,
+          message: imageValidation.isValid
+            ? "Image validated successfully!"
+            : `Image validation failed: ${imageValidation.reason}. Your listing may need manual review.`,
+        },
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.log(error);
     return new Response("Internal Server Error", { status: 500 });
- }
+  }
 }
-

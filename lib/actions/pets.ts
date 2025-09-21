@@ -20,7 +20,7 @@ export async function getPets({
   limit = 10,
 }: GetPetsParams = {}) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const where: any = {};
+  const where: any = { isVerified: true };
 
   if (categoryId) {
     where.categoryId = categoryId;

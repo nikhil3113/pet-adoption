@@ -11,8 +11,8 @@ import {
 } from "lucide-react";
 
 export default async function Home() {
-  // Server-side: fetch latest 3 pets
   const latest = await prisma.pet.findMany({
+    where: { isVerified: true },
     take: 3,
     orderBy: { createdAt: "desc" },
     include: {
@@ -21,13 +21,11 @@ export default async function Home() {
     },
   });
 
-  // Server-side: fetch top categories to browse by type
   const categories = await prisma.categories.findMany({
     orderBy: { name: "asc" },
     take: 6,
   });
 
-  // Normalize for PetCard
   const petsForCards = latest.map((p) => ({
     id: p.id,
     name: p.name,
@@ -36,10 +34,9 @@ export default async function Home() {
     imageUrl: p.imageUrl,
     city: p.city,
     state: p.state,
-    status:
-      (typeof (p.status as unknown as string) === "string"
-        ? (p.status as unknown as string).toLowerCase()
-        : "available") as "available" | "found" | "missing" | "adopted",
+    status: (typeof (p.status as unknown as string) === "string"
+      ? (p.status as unknown as string).toLowerCase()
+      : "available") as "available" | "found" | "missing" | "adopted",
     category: { name: p.category?.name ?? "Pet" },
     owner: { name: p.owner?.name ?? "" },
   }));
@@ -121,21 +118,27 @@ export default async function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="rounded-2xl border border-slate-200 bg-white p-6">
               <ShieldCheck className="w-6 h-6 text-emerald-600" />
-              <h3 className="mt-3 font-semibold text-slate-900">Safe & verified</h3>
+              <h3 className="mt-3 font-semibold text-slate-900">
+                Safe & verified
+              </h3>
               <p className="mt-1 text-sm text-slate-600">
                 Listings are reviewed and owners can be contacted securely.
               </p>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-white p-6">
               <MapPin className="w-6 h-6 text-emerald-600" />
-              <h3 className="mt-3 font-semibold text-slate-900">Local discovery</h3>
+              <h3 className="mt-3 font-semibold text-slate-900">
+                Local discovery
+              </h3>
               <p className="mt-1 text-sm text-slate-600">
                 Find pets in your city and nearby areas with intuitive filters.
               </p>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-white p-6">
               <HeartHandshake className="w-6 h-6 text-emerald-600" />
-              <h3 className="mt-3 font-semibold text-slate-900">Community first</h3>
+              <h3 className="mt-3 font-semibold text-slate-900">
+                Community first
+              </h3>
               <p className="mt-1 text-sm text-slate-600">
                 Built for responsible adoption with transparent information.
               </p>
@@ -185,22 +188,32 @@ export default async function Home() {
           </h2>
           <ol className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <li className="rounded-2xl border border-slate-200 p-6">
-              <span className="text-xs font-semibold text-emerald-700">Step 1</span>
+              <span className="text-xs font-semibold text-emerald-700">
+                Step 1
+              </span>
               <h3 className="mt-2 font-semibold text-slate-900">Browse pets</h3>
               <p className="mt-1 text-sm text-slate-600">
                 Use filters to find pets by type, city, and more.
               </p>
             </li>
             <li className="rounded-2xl border border-slate-200 p-6">
-              <span className="text-xs font-semibold text-emerald-700">Step 2</span>
-              <h3 className="mt-2 font-semibold text-slate-900">Connect with owner</h3>
+              <span className="text-xs font-semibold text-emerald-700">
+                Step 2
+              </span>
+              <h3 className="mt-2 font-semibold text-slate-900">
+                Connect with owner
+              </h3>
               <p className="mt-1 text-sm text-slate-600">
                 Message owners to learn more and plan a visit.
               </p>
             </li>
             <li className="rounded-2xl border border-slate-200 p-6">
-              <span className="text-xs font-semibold text-emerald-700">Step 3</span>
-              <h3 className="mt-2 font-semibold text-slate-900">Adopt responsibly</h3>
+              <span className="text-xs font-semibold text-emerald-700">
+                Step 3
+              </span>
+              <h3 className="mt-2 font-semibold text-slate-900">
+                Adopt responsibly
+              </h3>
               <p className="mt-1 text-sm text-slate-600">
                 Complete adoption with care and provide a loving home.
               </p>
@@ -253,7 +266,8 @@ export default async function Home() {
                 Is adopting a pet free?
               </summary>
               <p className="mt-2 text-sm text-slate-600">
-                Adoption is community-driven. Some owners may request a small fee to cover care or vaccination costs.
+                Adoption is community-driven. Some owners may request a small
+                fee to cover care or vaccination costs.
               </p>
             </details>
             <details className="group rounded-xl border border-slate-200 p-4">
@@ -261,7 +275,8 @@ export default async function Home() {
                 How do I contact a pet owner?
               </summary>
               <p className="mt-2 text-sm text-slate-600">
-                Open a pet’s page and, if signed in, use the provided email or phone to get in touch.
+                Open a pet’s page and, if signed in, use the provided email or
+                phone to get in touch.
               </p>
             </details>
             <details className="group rounded-xl border border-slate-200 p-4">
@@ -269,7 +284,8 @@ export default async function Home() {
                 Can I list my pet for adoption?
               </summary>
               <p className="mt-2 text-sm text-slate-600">
-                Yes. Create an account and list your pet with photos and details. We recommend including vaccination info.
+                Yes. Create an account and list your pet with photos and
+                details. We recommend including vaccination info.
               </p>
             </details>
           </div>

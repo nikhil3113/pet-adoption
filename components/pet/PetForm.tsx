@@ -1,3 +1,5 @@
+"use client";
+
 import FormField from "@/components/FormField";
 import { Button } from "../ui/button";
 import {
@@ -10,6 +12,7 @@ import {
 import { Form } from "../ui/form";
 import { UseFormReturn } from "react-hook-form";
 import UploadImage from "../UploadImage";
+import { useState } from "react";
 
 interface PetFormData {
   name: string;
@@ -42,6 +45,56 @@ export default function PetForm({
   isUpdate = false,
   categories,
 }: PetFormProps) {
+  const [imageValidation, setImageValidation] = useState<{
+    isValid: boolean;
+    detectedAnimal: string;
+    confidence: string;
+    reason: string;
+    loading: boolean;
+    error?: string;
+  } | null>(null);
+
+  async function validateImageClient(imageUrl: string, categoryName: string) {
+    const res = await fetch("/api/pet/validate-image", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imageUrl, categoryName }),
+    });
+    if (!res.ok) throw new Error("Image validation failed");
+    return res.json();
+  }
+
+  const selectedCategory = categories.find(
+    (cat) => cat.id === form.watch("categoryId")
+  )?.name;
+
+  async function handleImageChange(url: string) {
+    setValue("imageUrl", url);
+    setImageValidation({
+      isValid: false,
+      detectedAnimal: "",
+      confidence: "",
+      reason: "",
+      loading: true,
+    });
+    if (url && selectedCategory) {
+      try {
+        const result = await validateImageClient(url, selectedCategory);
+        setImageValidation({ ...result, loading: false });
+      } catch {
+        setImageValidation({
+          isValid: false,
+          detectedAnimal: "",
+          confidence: "",
+          reason: "Validation failed",
+          loading: false,
+          error: "Validation failed",
+        });
+      }
+    } else {
+      setImageValidation(null);
+    }
+  }
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-slate-50 to-sky-50 py-10">
       <div className="max-w-4xl mx-auto px-4">
@@ -153,9 +206,43 @@ export default function PetForm({
                   </h2>
                   <UploadImage
                     value={imageUrl}
-                    onChange={(url) => setValue("imageUrl", url)}
-                    onRemove={() => setValue("imageUrl", "")}
+                    onChange={handleImageChange}
+                    onRemove={() => {
+                      setValue("imageUrl", "");
+                      setImageValidation(null);
+                    }}
                   />
+                  {imageValidation?.loading && (
+                    <div className="text-sm text-slate-500 mt-2">
+                      Validating image...
+                    </div>
+                  )}
+                  {imageValidation && !imageValidation.loading && (
+                    <div
+                      className={`mt-2 text-sm rounded px-3 py-2 ${
+                        imageValidation.isValid
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          : "bg-amber-50 text-amber-700 border border-amber-200"
+                      }`}
+                    >
+                      {imageValidation.isValid ? (
+                        <>
+                          ✅ Image matches category (
+                          {imageValidation.detectedAnimal}, confidence:{" "}
+                          {imageValidation.confidence})
+                        </>
+                      ) : (
+                        <>
+                          ⚠️ Image may not match category.
+                          <br />
+                          Detected:{" "}
+                          {imageValidation.detectedAnimal || "Unknown"}
+                          <br />
+                          Reason: {imageValidation.reason}
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -174,6 +261,7 @@ export default function PetForm({
                   <Button
                     type="submit"
                     className="bg-gradient-to-r from-emerald-500 to-sky-500 hover:from-emerald-600 hover:to-sky-600 text-white px-8 py-2 rounded-lg shadow-lg font-semibold text-lg transition"
+                    disabled={!!imageValidation && !imageValidation.isValid}
                   >
                     {isUpdate ? "Update Pet" : "Add Pet"}
                   </Button>

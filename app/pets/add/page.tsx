@@ -63,6 +63,13 @@ export default function AddPets() {
       });
       const data = await res.json();
       if (!res.ok) {
+        if (data.validation && !data.validation.isValid) {
+          alert(
+            `⚠️ ${data.validation.message}\n\nDetected: ${data.validation.detectedAnimal}\nReason: ${data.validation.reason}`
+          );
+        } else if (data.validation && data.validation.isValid) {
+          alert(`✅ ${data.validation.message}`);
+        }
         alert(data.message || "Something went wrong");
         return;
       }
