@@ -1,6 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import PetDetails from "@/components/pet/details/PetDetails";
+import { AuthOptions, getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 async function getPetById(id: string) {
   try {
@@ -25,6 +29,11 @@ export default async function PetByIdPage({
   if (!pet) {
     redirect("/auth/signin");
   }
+
+  const session = await getServerSession(authOptions as AuthOptions);
+
+  const isOwner =
+    session?.user?.id && pet.owner?.id && session.user.id === pet.owner.id;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-slate-50 to-sky-50 py-10">
@@ -65,6 +74,13 @@ export default async function PetByIdPage({
             createdAt: pet.createdAt?.toISOString?.() ?? "",
           }}
         />
+        {isOwner && (
+          <div className="mt-6 flex justify-end">
+            <Link href={`/pets/update/${pet.id}`}>
+              <Button variant="link">Update Pet</Button>
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

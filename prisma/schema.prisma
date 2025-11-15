@@ -21,7 +21,7 @@ model User {
 }
 
 model Pet {
-  id             String     @id @default(auto()) @map("_id") @db.ObjectId
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
   gender         String
   name           String
   age            Int
@@ -30,14 +30,15 @@ model Pet {
   imageUrl       String
   state          String
   city           String
-  status         PetStatus  @default(AVAILABLE)
-  isVerified     Boolean    @default(false)
-  ownerId        String     @db.ObjectId
-  owner          User       @relation(fields: [ownerId], references: [id])
-  categoryId     String     @db.ObjectId
-  category       Categories @relation(fields: [categoryId], references: [id])
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  status         PetStatus    @default(AVAILABLE)
+  isVerified     Boolean      @default(false)
+  reviewStatus   ReviewStatus @default(PENDING)
+  ownerId        String       @db.ObjectId
+  owner          User         @relation(fields: [ownerId], references: [id])
+  categoryId     String       @db.ObjectId
+  category       Categories   @relation(fields: [categoryId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   @@index([state, city])
   @@index([status])
@@ -61,4 +62,10 @@ enum PetStatus {
   FOUND
   AVAILABLE
   ADOPTED
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

@@ -19,7 +19,7 @@ async function verifyPet(petId: string, isVerified: boolean) {
 
   await prisma.pet.update({
     where: { id: petId },
-    data: { isVerified },
+    data: { isVerified, reviewStatus: isVerified ? "APPROVED" : "REJECTED" },
   });
 
   revalidatePath("/admin/unverified-pets");
@@ -27,7 +27,6 @@ async function verifyPet(petId: string, isVerified: boolean) {
 
 export default async function AdminReviewPage() {
   const session = await getServerSession(authOptions as AuthOptions);
-
   if (!session || session.user.role !== "ADMIN") {
     redirect("/");
   }
@@ -93,8 +92,20 @@ export default async function AdminReviewPage() {
                       )}
                     </div>
 
-                    <span className="px-2 py-1 text-xs bg-amber-100 text-amber-800 rounded-full">
-                      ⏳ Pending Review
+                    <span
+                      className={`px-2 py-1 text-xs rounded-full ${
+                        pet.reviewStatus === "REJECTED"
+                          ? "bg-red-100 text-red-800"
+                          : pet.reviewStatus === "APPROVED"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-amber-100 text-amber-800"
+                      }`}
+                    >
+                      {pet.reviewStatus === "REJECTED"
+                        ? "❌ Rejected"
+                        : pet.reviewStatus === "APPROVED"
+                        ? "✅ Approved"
+                        : "⏳ Pending Review"}
                     </span>
                   </div>
 

@@ -14,6 +14,7 @@ import {
   Plus,
   Heart,
   MapPin,
+  Pen,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -201,12 +202,11 @@ export default async function ProfilePage() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {userPets.map((pet) => (
-                      <Link
+                      <div
                         key={pet.id}
-                        href={`/pets/${pet.id}`}
-                        className="group block"
+                        className="border border-slate-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
                       >
-                        <div className="border border-slate-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                        <Link href={`/pets/${pet.id}`} className="group block">
                           <Image
                             src={pet.imageUrl}
                             alt={pet.name}
@@ -214,7 +214,7 @@ export default async function ProfilePage() {
                             width={400}
                             height={128}
                           />
-                          <div className="p-3">
+                          <div className="pt-3 px-3">
                             <h4 className="font-medium text-slate-900 group-hover:text-emerald-700 transition-colors">
                               {pet.name}
                             </h4>
@@ -234,17 +234,25 @@ export default async function ProfilePage() {
                               {pet.status.toLowerCase()}
                             </span>
                             <span
-                              className={`nline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-2 ${
+                              className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-2 ${
                                 pet.isVerified
                                   ? "text-emerald-500"
                                   : "text-rose-500"
                               }`}
                             >
-                              {pet.isVerified ? "Verified" : "Not Verified"}
+                              {pet.reviewStatus}
                             </span>
                           </div>
+                        </Link>
+                        <div className="px-3 pb-3 flex justify-end items-end">
+                          <Link
+                            href={`/pets/update/${pet.id}`}
+                            className="mt-2 inline-block"
+                          >
+                            <Pen width={20} className="text-emerald-500" />
+                          </Link>
                         </div>
-                      </Link>
+                      </div>
                     ))}
                   </div>
                 )}
