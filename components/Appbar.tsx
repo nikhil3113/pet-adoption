@@ -23,12 +23,14 @@ export async function Appbar() {
         {/* Navigation */}
         <div className="flex items-center gap-2">
           <Link
+            prefetch={true}
             href="/pets"
             className="text-slate-700 hover:text-emerald-700 px-3 py-2 rounded-md font-medium transition"
           >
             Browse Pets
           </Link>
           <Link
+            prefetch={true}
             href="/pets/add"
             className="text-slate-700 hover:text-emerald-700 px-3 py-2 rounded-md font-medium transition"
           >

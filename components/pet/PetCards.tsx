@@ -28,7 +28,7 @@ export function PetCard({ pet }: { pet: any }) {
   };
 
   return (
-    <Link href={`/pets/${pet.id}`} className="block">
+    <Link href={`/pets/${pet.id}`} prefetch={true} className="block">
       <Card className="group overflow-hidden rounded-xl border border-slate-200 shadow-sm hover:shadow-xl hover:ring-1 hover:ring-emerald-200 transition">
         <CardHeader className="p-0 relative">
           <div className="relative h-48 w-full overflow-hidden">

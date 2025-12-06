@@ -91,6 +91,7 @@ export default async function Home() {
               {categories.map((c) => (
                 <Link
                   key={c.id}
+                  prefetch={true}
                   href={`/pets?categoryId=${encodeURIComponent(c.id)}`}
                   className="group rounded-xl border border-slate-200 bg-white hover:border-emerald-300 hover:shadow transition p-4 flex items-center justify-center text-slate-700 font-medium"
                 >
@@ -155,6 +156,7 @@ export default async function Home() {
               Latest arrivals
             </h2>
             <Link
+              prefetch={true}
               href="/pets"
               className="text-emerald-700 hover:text-emerald-800 font-medium"
             >
@@ -165,7 +167,11 @@ export default async function Home() {
           {petsForCards.length === 0 ? (
             <div className="rounded-xl border border-dashed border-slate-200 p-10 text-center text-slate-500">
               No pets yet. Be the first to{" "}
-              <Link href="/pets/add" className="text-emerald-700 font-medium">
+              <Link
+                href="/pets/add"
+                prefetch={true}
+                className="text-emerald-700 font-medium"
+              >
                 add a pet
               </Link>
               .
